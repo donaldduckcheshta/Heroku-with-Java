@@ -1,0 +1,243 @@
+Getting Started on Heroku with Java
+
+
+ 1. In this step you will install the Heroku Command Line Interface (CLI). You will use the CLI to manage and scale your applications, to provision add-ons, to view the logs of your application as it runs on Heroku, as well as to help run your application locally.
+
+ 2. Once installed, you can use the heroku command from your command shell.
+
+ 3. Log in using the email address and password you used when creating your Heroku account:
+
+heroku login
+Enter your Heroku credentials.
+Email: java@example.com
+Password:
+
+
+A) Prepare the app
+
+ 1. In this step, you will prepare a simple application that can be deployed.
+
+ 2. To clone the sample application so that you have a local version of the code that you can then deploy to Heroku, execute the following commands in your local command shell or terminal:
+
+ 3. $ git clone https://github.com/heroku/java-getting-started.git
+            $ cd java-getting-started
+
+
+
+ 4. You now have a functioning git repository that contains a simple application as well as a pom.xml file, which is used by Java’s dependency manager, Maven.
+
+ 
+ 
+In this step, you will prepare a simple application that can be deployed.
+To clone the sample application so that you have a local version of the code that you can then deploy to Heroku, execute the following commands in your local command shell or terminal:
+$ git clone https://github.com/heroku/java-getting-started.git
+$ cd java-getting-started
+
+You now have a functioning git repository that contains a simple application as well as a pom.xml file, which is used by Java’s dependency manager, Maven.
+
+B) View logs
+Heroku treats logs as streams of time-ordered events aggregated from the output streams of all your app and Heroku components, providing a single channel for all of the events.
+
+View information about your running app using one of the logging commands, heroku logs --tail:
+
+$ heroku logs --tail
+2017-04-20T15:06:14.198559+00:00 heroku[web.1]: Starting process with command    `java $JAVA_OPTS -Dserver.port=43161 -jar target/java-getting-started-1.0.jar`
+2017-04-20T15:06:16.478043+00:00 app[web.1]: Setting JAVA_TOOL_OPTIONS defaults based on dyno size. Custom settings will override them.
+2017-04-20T15:06:16.484066+00:00 app[web.1]: Picked up JAVA_TOOL_OPTIONS: -Xmx350m -Xss512k -Dfile.encoding=UTF-8
+2017-04-20T15:06:19.396477+00:00 app[web.1]:   _    _                _
+2017-04-20T15:06:19.396487+00:00 app[web.1]:  | |  | |              | |
+2017-04-20T15:06:19.396488+00:00 app[web.1]:  | |__| | ___ _ __ ___ | | ___   _
+2017-04-20T15:06:19.396489+00:00 app[web.1]:  |  __  |/ _ \ '__/ _ \| |/ / | | |
+2017-04-20T15:06:19.396489+00:00 app[web.1]:  | |  | |  __/ | | (_) |   <| |_| |
+2017-04-20T15:06:19.396490+00:00 app[web.1]:  |_|  |_|\___|_|  \___/|_|\_\\__,_|
+2017-04-20T15:06:19.396491+00:00 app[web.1]:
+2017-04-20T15:06:19.396491+00:00 app[web.1]: :: Built with Spring Boot :: 1.5.2.RELEASE
+...
+2017-04-20T15:06:33.472964+00:00 app[web.1]: 2017-04-20 15:06:33.472  INFO 4 --- [           main] com.example.Main               : Started Main in 15.345 seconds (JVM running for 16.989)
+2017-04-20T15:06:33.778990+00:00 heroku[web.1]: State changed from starting to up
+
+
+
+Visit your application in the browser again, and you’ll see another log message generated.
+
+
+
+
+
+
+
+
+
+
+
+C) Define a Procfile
+Use a Procfile, a text file in the root directory of your application, to explicitly declare what command should be executed to start your app.
+
+The Procfile in the example app you deployed looks like this:
+
+web: java -jar target/java-getting-started-1.0.jar
+
+3) This declares a single process type, web, and the command needed to run it. The name web is important here. It declares that this process type will be attached to the HTTP routing stack of Heroku, and receive web traffic when deployed.
+
+4) Procfiles can contain additional process types. For example, you might declare one for a background worker process that processes items off of a queue.
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D) Define config vars
+Heroku lets you externalise configuration - storing data such as encryption keys or external resource addresses in config vars.
+
+At runtime, config vars are exposed as environment variables to the application. For example, modify src/main/java/com/example/Main.java so that the method repeats grabs an energy value from the ENERGY environment variable:
+
+@RequestMapping("/hello")
+    String hello(Map<String, Object> model) {
+    RelativisticModel.select();
+    String energy = System.getenv().get("ENERGY");
+    if (energy == null) {
+       energy = "12 GeV";
+    }
+    Amount<Mass> m = Amount.valueOf(energy).to(KILOGRAM);
+    model.put("science", "E=mc^2: " + energy + " = "  + m.toString());
+    return "hello";
+}
+
+
+
+Now compile the app again so that this change is integrated by running mvn clean install.
+
+heroku local will automatically set up the environment based on the contents of the .env file in your local directory. In the top-level directory of your project there is already a .env file that has the following contents:
+ENERGY=20 GeV
+
+5) If you run the app with heroku local and visit it at http://localhost:5000/hello, you’ll see the conversion value for 20 GeV.
+To set the config var on Heroku, execute the following:
+$ heroku config:set ENERGY="20 GeV"
+Setting config vars and restarting warm-eyrie-9006... done, v10
+ENERGY: 20 GeV
+
+6) View the config vars that are set using heroku config:
+$ heroku config
+== warm-eyrie-9006 Config Vars
+PAPERTRAIL_API_TOKEN: erdKhPeeeehIcdfY7ne
+ENERGY: 20 GeV
+...
+
+Deploy your changed application to Heroku to see this in action.
+
+
+E) Tracking your app in Git
+Before you can deploy your app to Heroku, you need to initialize a local Git repository and commit your application code to it.
+
+The following example demonstrates initializing a Git repository for an app that lives in the myappdirectory:
+
+$ cd myapp
+$ git init
+Initialized empty Git repository in .git/
+$ git add .
+$ git commit -m "My first commit"
+Created initial commit 5df2d09: My first commit
+ 44 files changed, 8393 insertions(+), 0 deletions(-)
+ create mode 100644 README
+ create mode 100644 Procfile
+ create mode 100644 app/controllers/source_file
+...
+
+
+
+Be sure to initialize the Git repository in your app’s root directory. If your app is in a subdirectory of your repository, it won’t run when it is pushed to Heroku.
+
+Your app’s code is now tracked in a local Git repository. It has not yet been pushed to any remote servers.
+
+
+
+
+
+
+Creating a Heroku remote
+Git remotes are versions of your repository that live on other servers. You deploy your app’s code by pushing it to a special Heroku-hosted remote that’s associated with your app.
+
+For a new Heroku app
+The heroku create CLI command creates a new empty application on Heroku, along with an associated empty Git repository. If you run this command from your app’s root directory, the empty Heroku Git repository is automatically set as a remote for your local repository.
+
+$ heroku create
+Creating app... done, ⬢ thawing-inlet-61413
+https://thawing-inlet-61413.herokuapp.com/ | https://git.heroku.com/thawing-inlet-61413.git
+
+
+
+You can use the git remote command to confirm that a remote named heroku has been set for your app:
+
+$ git remote -v
+heroku  https://git.heroku.com/thawing-inlet-61413.git (fetch)
+heroku  https://git.heroku.com/thawing-inlet-61413.git (push)
+
+
+
+For an existing Heroku app
+If you have already created your Heroku app, you can easily add a remote to your local repository with the heroku git:remote command. All you need is your Heroku app’s name:
+
+$ heroku git:remote -a thawing-inlet-61413
+set git remote heroku to https://git.heroku.com/thawing-inlet-61413.git
+
+
+
+Renaming remotes
+By default, the Heroku CLI names all of the Heroku remotes it creates for your app heroku. You can rename your remotes with the git remote rename command:
+
+$ git remote rename heroku heroku-staging
+
+
+
+Renaming your Heroku remote can be handy if you have multiple Heroku apps that use the same codebase (for example, the staging and production versions of an app). In this case, each Heroku app has its own remote in your local repository.
+
+The remainder of this article assumes your app has a single Heroku remote that is named heroku.
+
+Deploying code
+To deploy your app to Heroku, you typically use the git push command to push the code from your local repository’s master branch to your heroku remote, like so:
+
+$ git push heroku master
+Initializing repository, done.
+updating 'refs/heads/master'
+...
+
+
+
+Use this same command whenever you want to deploy the latest committed version of your code to Heroku.
+
+Note that Heroku only deploys code that is pushed to the master branch of your heroku remote. Pushing code to another branch of the remote has no effect.
+
+If you want to deploy code to Heroku from a non-master branch of your local repository (such as testbranch), use the following syntax to ensure it is pushed to the remote’s master branch:
+
+$ git push heroku testbranch:master
+
+Build deploy ordering
+If multiple parallel builds are started for an app (either by the same user performing multiple pushes, by app collaborators pushing concurrently or because builds are created concurrently with other mechanisms like Build API or GitHub Sync), then the last build to complete will generally be the one that ends up being deployed for the app, even if that build was started before other builds.
+
+Take an example of two builds, A and B: Build A is started, runs slowly and completes in 2 minutes. 30 seconds after build A is started, build B is started and completes in 1 minute. Build B is deployed for the app when it completes. 30 seconds later, build A completes and is deployed for the app. The end result is that build A is deployed on the app, even though build B was started later.
+
+Detach from build process
+When deploying code using git push, you can detach from the build process by pressing Ctrl + C. However, your build will continue to process in the background and will create a new release as soon as it finished.
